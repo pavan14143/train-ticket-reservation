@@ -22,11 +22,48 @@ jobs:
         run: mvn test
       - name: maven package
         run: mvn package
-      - name: build and test and sonarqube scan
-        run:
-            mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=train-ticket-reservation \
-            -Dsonar.host.url="${{ secrets.SONAR_HOST }}" \
-            -Dsonar.login="${{ secrets.SONAR_TOKEN }}"
-
-     
+      -	name: Deploy to DEV 
+        run: | 
+          curl -u ${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }} \ 
+-T	target/*.war \ 
+          "${{ secrets.TOMCAT_URL_DEV 
+}}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
+ 
+  deploy-test: 
+    needs: deploy-dev     runs-on: ubuntu-latest 
+ 
+    steps: 
+-	name: Download Artifact         uses: actions/download-artifact@v4         with: 
+          name: app-war           path: target 
+ 
+-	name: Deploy to TEST 
+        run: | 
+          curl -u ${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }} \ 
+-T	target/*.war \ 
+          "${{ secrets.TOMCAT_URL_TEST 
+}}/manager/text/deploy?path=/file-upload-url-generator&update=true"   deploy-preprod:     needs: deploy-test     runs-on: ubuntu-latest 
+ 
+    steps: 
+-	name: Download Artifact         uses: actions/download-artifact@v4         with: 
+          name: app-war           path: target 
+ 
+-	name: Deploy to PRE-PROD 
+        run: | 
+          curl -u ${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }} \ 
+-T	target/*.war \ 
+          "${{ secrets.TOMCAT_URL_PREPROD 
+}}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
+ 
+  deploy-prod: 
+    needs: deploy-preprod     runs-on: ubuntu-latest 
+ 
+    steps: 
+-	name: Download Artifact         uses: actions/download-artifact@v4         with: 
+          name: app-war           path: target 
+ 
+-	name: Deploy to PROD 
+        run: | 
+          curl -u ${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }} \ 
+-T	target/*.war \ 
+          "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
+ 
