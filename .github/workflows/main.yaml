@@ -1,4 +1,4 @@
-name: CI/CD Maven Tomcat Deployment
+name: CI-CD Maven Tomcat Deployment
 
 on:
 push:
@@ -9,6 +9,7 @@ jobs:
 build:
 runs-on: ubuntu-latest
 
+```
 steps:
   - name: Checkout Source Code
     uses: actions/checkout@v4
@@ -20,28 +21,21 @@ steps:
       java-version: '17'
       cache: maven
 
-  - name: Maven Validate
-    run: mvn validate
-
-  - name: Maven Compile
-    run: mvn compile
-
-  - name: Maven Test
-    run: mvn test
-
-  - name: Maven Package
-    run: mvn package
+  - name: Build Application
+    run: mvn clean package
 
   - name: Upload WAR Artifact
     uses: actions/upload-artifact@v4
     with:
       name: app-war
-      path: target/*.
+      path: target/*.war
+```
 
 deploy-dev:
 needs: build
 runs-on: ubuntu-latest
 
+```
 steps:
   - name: Download WAR Artifact
     uses: actions/download-artifact@v4
@@ -54,11 +48,13 @@ steps:
       curl -u "${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }}" \
       -T target/*.war \
       "${{ secrets.TOMCAT_URL_DEV }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+```
 
 deploy-test:
 needs: deploy-dev
 runs-on: ubuntu-latest
 
+```
 steps:
   - name: Download WAR Artifact
     uses: actions/download-artifact@v4
@@ -71,11 +67,13 @@ steps:
       curl -u "${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }}" \
       -T target/*.war \
       "${{ secrets.TOMCAT_URL_TEST }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+```
 
 deploy-preprod:
 needs: deploy-test
 runs-on: ubuntu-latest
 
+```
 steps:
   - name: Download WAR Artifact
     uses: actions/download-artifact@v4
@@ -88,11 +86,13 @@ steps:
       curl -u "${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }}" \
       -T target/*.war \
       "${{ secrets.TOMCAT_URL_PREPROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+```
 
 deploy-prod:
 needs: deploy-preprod
 runs-on: ubuntu-latest
 
+```
 steps:
   - name: Download WAR Artifact
     uses: actions/download-artifact@v4
@@ -104,4 +104,7 @@ steps:
     run: |
       curl -u "${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }}" \
       -T target/*.war \
-      "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true
+      "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+
+
+```
