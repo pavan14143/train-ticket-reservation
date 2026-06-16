@@ -22,7 +22,8 @@ jobs:
         run: mvn test
       - name: maven package
         run: mvn package
-        on:   workflow dispatch: 
+        on:   workflow
+        dispatch: 
  
 jobs: 
  
