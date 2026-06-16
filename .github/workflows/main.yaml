@@ -20,7 +20,7 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Build Application
+      - name: Build WAR
         run: mvn clean package
 
       - name: Upload WAR Artifact
@@ -43,8 +43,8 @@ jobs:
       - name: Deploy to DEV
         run: |
           curl -u "${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }}" \
-          -T target/*.war \
-          "${{ secrets.TOMCAT_URL_DEV }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+            -T target/*.war \
+            "${{ secrets.TOMCAT_URL_DEV }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
 
   deploy-test:
     needs: deploy-dev
@@ -60,8 +60,8 @@ jobs:
       - name: Deploy to TEST
         run: |
           curl -u "${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }}" \
-          -T target/*.war \
-          "${{ secrets.TOMCAT_URL_TEST }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+            -T target/*.war \
+            "${{ secrets.TOMCAT_URL_TEST }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
 
   deploy-preprod:
     needs: deploy-test
@@ -77,8 +77,8 @@ jobs:
       - name: Deploy to PREPROD
         run: |
           curl -u "${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }}" \
-          -T target/*.war \
-          "${{ secrets.TOMCAT_URL_PREPROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+            -T target/*.war \
+            "${{ secrets.TOMCAT_URL_PREPROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
 
   deploy-prod:
     needs: deploy-preprod
@@ -94,5 +94,5 @@ jobs:
       - name: Deploy to PROD
         run: |
           curl -u "${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }}" \
-          -T target/*.war \
-          "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+            -T target/*.war \
+            "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
