@@ -30,22 +30,32 @@ jobs:
 }}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
  
   deploy-test: 
-    needs: deploy-dev     runs-on: ubuntu-latest 
+    needs: deploy-dev    
+    runs-on: ubuntu-latest 
  
     steps: 
--	name: Download Artifact         uses: actions/download-artifact@v4         with: 
-          name: app-war           path: target 
+-	name: Download Artifact         
+uses: actions/download-artifact@v4        
+with: 
+    name: app-war      
+  path: target 
  
 -	name: Deploy to TEST 
         run: | 
           curl -u ${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }} \ 
 -T	target/*.war \ 
           "${{ secrets.TOMCAT_URL_TEST 
-}}/manager/text/deploy?path=/file-upload-url-generator&update=true"   deploy-preprod:     needs: deploy-test     runs-on: ubuntu-latest 
+}}/manager/text/deploy?path=/file-upload-url-generator&update=true"   
+deploy-preprod:    
+needs: deploy-test    
+runs-on: ubuntu-latest 
  
     steps: 
--	name: Download Artifact         uses: actions/download-artifact@v4         with: 
-          name: app-war           path: target 
+-	name: Download Artifact      
+uses: actions/download-artifact@v4       
+with: 
+      name: app-war 
+          path: target 
  
 -	name: Deploy to PRE-PROD 
         run: | 
@@ -55,11 +65,15 @@ jobs:
 }}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
  
   deploy-prod: 
-    needs: deploy-preprod     runs-on: ubuntu-latest 
+    needs: deploy-preprod  
+    runs-on: ubuntu-latest 
  
     steps: 
--	name: Download Artifact         uses: actions/download-artifact@v4         with: 
-          name: app-war           path: target 
+-	name: Download Artifact       
+uses: actions/download-artifact@v4         
+with:  
+        name: app-war   
+        path: target 
  
 -	name: Deploy to PROD 
         run: | 
