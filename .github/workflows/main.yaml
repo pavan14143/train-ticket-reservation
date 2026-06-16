@@ -1,83 +1,106 @@
-name: ci pipeline to build the scource code with maven 
-on: 
+name: CI Pipeline to Build and Deploy Maven Application
+
+on:
   push:
-    branches: master
+    branches:
+      - master
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: checkout code
-        uses: actions/checkout@v3
-      
-      - name: set-up jdk
-        uses: actions/setup-java@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'   # Updated Java versio
-      - name: maven validate
+          distribution: temurin
+          java-version: '17'
+
+      - name: Maven Validate
         run: mvn validate
-      - name: maven compile
-        run: mvn compile 
-      - name: maven test
+
+      - name: Maven Compile
+        run: mvn compile
+
+      - name: Maven Test
         run: mvn test
-      - name: maven package
+
+      - name: Maven Package
         run: mvn package
-      -	name: Deploy to DEV 
-        run: | 
-          curl -u ${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }} \ 
--T	target/*.war \ 
-          "${{ secrets.TOMCAT_URL_DEV 
-}}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
- 
-  deploy-test: 
-    needs: deploy-dev    
-    runs-on: ubuntu-latest 
- 
-    steps: 
--	name: Download Artifact         
-uses: actions/download-artifact@v4        
-with: 
-    name: app-war      
-  path: target 
- 
--	name: Deploy to TEST 
-        run: | 
-          curl -u ${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }} \ 
--T	target/*.war \ 
-          "${{ secrets.TOMCAT_URL_TEST 
-}}/manager/text/deploy?path=/file-upload-url-generator&update=true"   
-deploy-preprod:    
-needs: deploy-test    
-runs-on: ubuntu-latest 
- 
-    steps: 
--	name: Download Artifact      
-uses: actions/download-artifact@v4       
-with: 
-      name: app-war 
-          path: target 
- 
--	name: Deploy to PRE-PROD 
-        run: | 
-          curl -u ${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }} \ 
--T	target/*.war \ 
-          "${{ secrets.TOMCAT_URL_PREPROD 
-}}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
- 
-  deploy-prod: 
-    needs: deploy-preprod  
-    runs-on: ubuntu-latest 
- 
-    steps: 
--	name: Download Artifact       
-uses: actions/download-artifact@v4         
-with:  
-        name: app-war   
-        path: target 
- 
--	name: Deploy to PROD 
-        run: | 
-          curl -u ${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }} \ 
--T	target/*.war \ 
-          "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true" 
- 
+
+      - name: Upload WAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-war
+          path: target/*.war
+
+  deploy-dev:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-war
+          path: target
+
+      - name: Deploy to DEV
+        run: |
+          curl -u ${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }} \
+          -T target/*.war \
+          "${{ secrets.TOMCAT_URL_DEV }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+
+  deploy-test:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-war
+          path: target
+
+      - name: Deploy to TEST
+        run: |
+          curl -u ${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }} \
+          -T target/*.war \
+          "${{ secrets.TOMCAT_URL_TEST }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+
+  deploy-preprod:
+    needs: deploy-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-war
+          path: target
+
+      - name: Deploy to PRE-PROD
+        run: |
+          curl -u ${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }} \
+          -T target/*.war \
+          "${{ secrets.TOMCAT_URL_PREPROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+
+  deploy-prod:
+    needs: deploy-preprod
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-war
+          path: target
+
+      - name: Deploy to PROD
+        run: |
+          curl -u ${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }} \
+          -T target/*.war \
+          "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
