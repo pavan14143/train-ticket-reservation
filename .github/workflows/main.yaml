@@ -1,4 +1,4 @@
-name: CI-CD Maven Tomcat Deployment
+name: Build and Deploy train-ticket-reservation
 
 on:
   push:
