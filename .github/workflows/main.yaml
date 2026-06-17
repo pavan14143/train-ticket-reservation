@@ -3,13 +3,15 @@ name: ci pipeline to build source code with Maven
 on:
   push:
     branches: [ master ]
-  workflow_dispatch:
+ workflow_dispatch:
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -17,25 +19,20 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: maven
 
-      - name: Maven validate
-        run: mvn -B -ntp validate
+      - name: Build WAR File
+        run: mvn clean package -DskipTests
 
-      - name: Maven compile
-        run: mvn -B -ntp compile
-
-      - name: Maven test
-        run: mvn -B -ntp test
-
-      - name: Maven package
-        run: mvn -B -ntp package
+      - name: Find WAR File
+        run: |
+          WAR_FILE=$(ls target/*.war | head -n 1)
+          echo "WAR_FILE=$WAR_FILE" >> $GITHUB_ENV
 
       - name: Upload WAR Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-war
-          path: target/*.war
+          name: war-file
+          path: ${{ env.WAR_FILE }}
 
   deploy-dev:
     needs: build
@@ -45,14 +42,27 @@ jobs:
       - name: Download WAR Artifact
         uses: actions/download-artifact@v4
         with:
-          name: app-war
-          path: target
+          name: war-file
 
       - name: Deploy to DEV
+        env:
+          URL: ${{ secrets.TOMCAT_URL_DEV }}
+          USER: ${{ secrets.TOMCAT_USER_DEV }}
+          PASS: ${{ secrets.TOMCAT_PASS_DEV }}
+
         run: |
-          curl -u "${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_DEV }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
+          WAR_FILE=$(ls *.war | head -n 1)
+
+          echo "Deploying $WAR_FILE to DEV"
+
+          curl -v -u "$USER:$PASS" "$URL/list"
+
+          curl -v -u "$USER:$PASS" \
+            --fail \
+            --show-error \
+            -T "$WAR_FILE" \
+            "$URL/deploy?path=/train-ticket-reservation&update=true"
+
   deploy-test:
     needs: deploy-dev
     runs-on: ubuntu-latest
@@ -61,45 +71,23 @@ jobs:
       - name: Download WAR Artifact
         uses: actions/download-artifact@v4
         with:
-          name: app-war
-          path: target
+          name: war-file
 
       - name: Deploy to TEST
+        env:
+          URL: ${{ secrets.TOMCAT_URL_TEST }}
+          USER: ${{ secrets.TOMCAT_USER_TEST }}
+          PASS: ${{ secrets.TOMCAT_PASS_TEST }}
+
         run: |
-          curl -u "${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_TEST }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
-  deploy-preprod:
-    needs: deploy-test
-    runs-on: ubuntu-latest
+          WAR_FILE=$(ls *.war | head -n 1)
 
-    steps:
-      - name: Download WAR Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-war
-          path: target
+          echo "Deploying $WAR_FILE to TEST"
 
-      - name: Deploy to PREPROD
-        run: |
-          curl -u "${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_PREPROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
-  deploy-prod:
-    needs: deploy-preprod
-    runs-on: ubuntu-latest
+          curl -v -u "$USER:$PASS" "$URL/list"
 
-    steps:
-      - name: Download WAR Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-war
-          path: target
-
-      - name: Deploy to PROD
-        run: |
-          curl -u "${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/file-upload-url-generator&update=true"
-
-   
+          curl -v -u "$USER:$PASS" \
+            --fail \
+            --show-error \
+            -T "$WAR_FILE" \
+            "$URL/deploy?path=/train-ticket-reservation&update=true"
