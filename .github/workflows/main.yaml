@@ -1,70 +1,72 @@
 name: Build and Deploy train-ticket-reservation
 
-on: push: branch
-es:  
--	master  
-  
-  
-	jobs: 	build-
-deploy:  
-runs-on: ubuntu-latest  
-  
-  
-steps:  
--	name: checkout code  
-uses: actions/checkout@v3  
-  
-  
--	name: set-up jdk uses: actions/setup-java@v3 with:  
-	distribution: 	'temurin' 	java-
-version: '17'  
-  
-# Create secure Maven settings.xml with Nexus creds  - name: Configure Maven settings for Nexus env:  
-NEXUS_USERNAME: ${{ secrets.NEXUS_USER }}  
-NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}  
-run: |  
-	mkdir 	-p 	~/.m2 	cat 	> 
-	~/.m2/settings.xml 	<<EOF 
-<settings 
-xmlns="http://maven.apache.o rg/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org
-/2001/XMLSchema-instance"  
-xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">  
-<servers>  
-<server>  
-<id>nexus</id>  
-<username>${NEXUS_USERNAME}</username>  
-<password>${NEXUS_PASSWORD}</password>  
-</server>  
-</servers>  
-</settings>  
-EOF  
-  
--	name: validate with maven run: mvn validate  
-  
--	name: compile with maven run: mvn compile  
-  
--	name: test with maven run: 
-mvn test  
-  
--	name: package with maven run: mvn package  
--	name: verify WAR file run: ls -lh target/  
-  
--	name: 	Build, 	Test 	and SonarQube Scan run: | mvn 
-clean verify sonar:sonar \  
--Dsonar.projectKey=train-ticket-reservation \  
--Dsonar.host.url="${{ secrets.SONAR_HOST }}" \  
--Dsonar.login="${{ secrets.SONAR_TOKEN }}"  
-  
-  
-# Deploy to Nexus using distributionManagement in POM  
--	name: Publish WAR to Nexus run: mvn deploy  
-  
-# Deploy WAR to Tomcat  
--	name: Deploy to tomcat run: | 
-	curl 	-v 	-u 	"${{ 
-secrets.TOMCAT_USER 	}}:${{ secrets.TOMCAT_PASSWORD 
-}}" \  
--T target/TrainBook-1.0.0-SNAPSHOT.war \  
-"http://${{ secrets.TOMCAT_HOST  
-}}:8080/manager/text/deploy?path=/TrainBook&update=true"  
-  
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Configure Maven settings for Nexus
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USER }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+          https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>nexus</id>
+      <username>${NEXUS_USERNAME}</username>
+      <password>${NEXUS_PASSWORD}</password>
+    </server>
+  </servers>
+</settings>
+EOF
+
+      - name: Validate with Maven
+        run: mvn validate
+
+      - name: Compile with Maven
+        run: mvn compile
+
+      - name: Test with Maven
+        run: mvn test
+
+      - name: Package with Maven
+        run: mvn package
+
+      - name: Verify WAR file
+        run: ls -lh target/
+
+      - name: Build, Test and SonarQube Scan
+        run: |
+          mvn clean verify sonar:sonar \
+            -Dsonar.projectKey=train-ticket-reservation \
+            -Dsonar.host.url="${{ secrets.SONAR_HOST }}" \
+            -Dsonar.login="${{ secrets.SONAR_TOKEN }}"
+
+      - name: Publish WAR to Nexus
+        run: mvn deploy
+
+      - name: Deploy to Tomcat
+        run: |
+          curl -v -u "${{ secrets.TOMCAT_USER }}:${{ secrets.TOMCAT_PASSWORD }}" \
+            -T target/TrainBook-1.0.0-SNAPSHOT.war \
+            "http://${{ secrets.TOMCAT_HOST }}:8080/manager/text/deploy?path=/TrainBook&update=true"
