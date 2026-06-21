@@ -1,141 +1,70 @@
 name: Build and Deploy train-ticket-reservation
 
-on:
-  push:
-    branches:
-      - master
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-
-      - name: Build WAR
-        run: mvn clean package
-
-      - name: Verify WAR
-        run: ls -lh target/
-
-      - name: Upload WAR Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-war
-          path: target/*.war
-
-  deploy-dev:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download WAR Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-war
-          path: target
-
-      - name: Verify Downloaded Artifact
-        run: ls -R target
-
-      - name: Deploy to DEV
-        run: |
-          curl --fail -v \
-            -u "${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_DEV }}/manager/text/deploy?path=/train-ticket-reservation&update=true"
-
-      - name: Verify Deployment
-        run: |
-          curl --fail \
-            -u "${{ secrets.TOMCAT_USER_DEV }}:${{ secrets.TOMCAT_PASSWORD_DEV }}" \
-            "${{ secrets.TOMCAT_URL_DEV }}/manager/text/list"
-
-  deploy-test:
-    needs: deploy-dev
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download WAR Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-war
-          path: target
-
-      - name: Verify Downloaded Artifact
-        run: ls -R target
-
-      - name: Deploy to TEST
-        run: |
-          curl --fail -v \
-            -u "${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_TEST }}/manager/text/deploy?path=/train-ticket-reservation&update=true"
-
-      - name: Verify Deployment
-        run: |
-          curl --fail \
-            -u "${{ secrets.TOMCAT_USER_TEST }}:${{ secrets.TOMCAT_PASSWORD_TEST }}" \
-            "${{ secrets.TOMCAT_URL_TEST }}/manager/text/list"
-
-  deploy-preprod:
-    needs: deploy-test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download WAR Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-war
-          path: target
-
-      - name: Verify Downloaded Artifact
-        run: ls -R target
-
-      - name: Deploy to PREPROD
-        run: |
-          curl --fail -v \
-            -u "${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_PREPROD }}/manager/text/deploy?path=/train-ticket-reservation&update=true"
-
-      - name: Verify Deployment
-        run: |
-          curl --fail \
-            -u "${{ secrets.TOMCAT_USER_PREPROD }}:${{ secrets.TOMCAT_PASSWORD_PREPROD }}" \
-            "${{ secrets.TOMCAT_URL_PREPROD }}/manager/text/list"
-
-  deploy-prod:
-    needs: deploy-preprod
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download WAR Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-war
-          path: target
-
-      - name: Verify Downloaded Artifact
-        run: ls -R target
-
-      - name: Deploy to PROD
-        run: |
-          curl --fail -v \
-            -u "${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }}" \
-            -T target/*.war \
-            "${{ secrets.TOMCAT_URL_PROD }}/manager/text/deploy?path=/train-ticket-reservation&update=true"
-
-      - name: Verify Deployment
-        run: |
-          curl --fail \
-            -u "${{ secrets.TOMCAT_USER_PROD }}:${{ secrets.TOMCAT_PASSWORD_PROD }}" \
-            "${{ secrets.TOMCAT_URL_PROD }}/manager/text/list"
+on: push: branch
+es:  
+-	master  
+  
+  
+	jobs: 	build-
+deploy:  
+runs-on: ubuntu-latest  
+  
+  
+steps:  
+-	name: checkout code  
+uses: actions/checkout@v3  
+  
+  
+-	name: set-up jdk uses: actions/setup-java@v3 with:  
+	distribution: 	'temurin' 	java-
+version: '17'  
+  
+# Create secure Maven settings.xml with Nexus creds  - name: Configure Maven settings for Nexus env:  
+NEXUS_USERNAME: ${{ secrets.NEXUS_USER }}  
+NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}  
+run: |  
+	mkdir 	-p 	~/.m2 	cat 	> 
+	~/.m2/settings.xml 	<<EOF 
+<settings 
+xmlns="http://maven.apache.o rg/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org
+/2001/XMLSchema-instance"  
+xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">  
+<servers>  
+<server>  
+<id>nexus</id>  
+<username>${NEXUS_USERNAME}</username>  
+<password>${NEXUS_PASSWORD}</password>  
+</server>  
+</servers>  
+</settings>  
+EOF  
+  
+-	name: validate with maven run: mvn validate  
+  
+-	name: compile with maven run: mvn compile  
+  
+-	name: test with maven run: 
+mvn test  
+  
+-	name: package with maven run: mvn package  
+-	name: verify WAR file run: ls -lh target/  
+  
+-	name: 	Build, 	Test 	and SonarQube Scan run: | mvn 
+clean verify sonar:sonar \  
+-Dsonar.projectKey=train-ticket-reservation \  
+-Dsonar.host.url="${{ secrets.SONAR_HOST }}" \  
+-Dsonar.login="${{ secrets.SONAR_TOKEN }}"  
+  
+  
+# Deploy to Nexus using distributionManagement in POM  
+-	name: Publish WAR to Nexus run: mvn deploy  
+  
+# Deploy WAR to Tomcat  
+-	name: Deploy to tomcat run: | 
+	curl 	-v 	-u 	"${{ 
+secrets.TOMCAT_USER 	}}:${{ secrets.TOMCAT_PASSWORD 
+}}" \  
+-T target/TrainBook-1.0.0-SNAPSHOT.war \  
+"http://${{ secrets.TOMCAT_HOST  
+}}:8080/manager/text/deploy?path=/TrainBook&update=true"  
+  
