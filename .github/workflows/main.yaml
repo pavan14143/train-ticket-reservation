@@ -31,17 +31,24 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
-      - name: Upload WAR to Nexus
-        env:
-          NEXUS_URL: ${{ secrets.NEXUS_REPO_URL }}
-          NEXUS_USER: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASS: ${{ secrets.NEXUS_PASSWORD }}
+      - name: Configure Maven settings.xml for Nexus
         run: |
-          WAR_FILE=$(ls target/*.war | head -n 1)
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>nexus</id>
+                <username>${{ secrets.NEXUS_USERNAME }}</username>
+                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
 
-          curl -v -u "$NEXUS_USER:$NEXUS_PASS" \
-            --upload-file "$WAR_FILE" \
-            "$NEXUS_URL/repository/maven-releases/train-ticket-reservation.war"
+      - name: Upload Artifact to Nexus
+        run: mvn deploy -DaltDeploymentRepository=nexus::default::${{ secrets.NEXUS_REPO_URL }}
+          
 
       - name: Deploy to Tomcat
         env:
