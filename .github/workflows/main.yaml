@@ -46,10 +46,13 @@ jobs:
       - name: Deploy to Tomcat
         env:
           TOMCAT_HOST: ${{ secrets.TOMCAT_HOST }}
+          TOMCAT_PORT: ${{ secrets.TOMCAT_PORT }}
           TOMCAT_USER: ${{ secrets.TOMCAT_USERNAME }}
           TOMCAT_PASS: ${{ secrets.TOMCAT_PASSWORD }}
         run: |
           WAR_FILE=$(ls target/*.war | head -n 1)
+
+          echo "Deploying to http://$TOMCAT_HOST:$TOMCAT_PORT/manager/text/deploy?path=/train-ticket-reservation&update=true"
 
           curl -v -u "$TOMCAT_USER:$TOMCAT_PASS" \
           -T "$WAR_FILE" \
