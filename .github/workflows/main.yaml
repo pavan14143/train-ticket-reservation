@@ -69,8 +69,8 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: new-task.json
-          service: ${{ secrets.ECS_SERVICE }}
-          cluster: ${{ secrets.ECS_CLUSTER }}
+          service: ${{ secrets.Eks_SERVICE }}
+          cluster: ${{ secrets.Eks_CLUSTER }}
           wait-for-service-stability: true
 
 
