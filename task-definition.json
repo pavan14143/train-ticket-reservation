@@ -1,5 +1,5 @@
 {
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:942004241991:task-definition/image-pavan:14",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:942004241991:task-definition/image-pavan:19",
   "containerDefinitions": [
     {
       "name": "container",
@@ -34,7 +34,7 @@
   "taskRoleArn": "arn:aws:iam::942004241991:role/ECS-role-aa699a6f",
   "executionRoleArn": "arn:aws:iam::942004241991:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
-  "revision": 14,
+  "revision": 19,
   "volumes": [],
   "status": "ACTIVE",
   "requiresAttributes": [
@@ -72,8 +72,8 @@
   "placementConstraints": [],
   "compatibilities": [
     "EC2",
-    "FARGATE",
-    "MANAGED_INSTANCES"
+    "MANAGED_INSTANCES",
+    "FARGATE"
   ],
   "runtimePlatform": {
     "cpuArchitecture": "X86_64",
@@ -84,7 +84,7 @@
   ],
   "cpu": "1024",
   "memory": "3072",
-  "registeredAt": "2026-07-01T07:06:33.637Z",
+  "registeredAt": "2026-07-02T05:39:35.802Z",
   "registeredBy": "arn:aws:iam::942004241991:root",
   "enableFaultInjection": false,
   "tags": []
