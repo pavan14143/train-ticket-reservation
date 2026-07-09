@@ -1,40 +1,43 @@
 {
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:942004241991:task-definition/image-pavan:19",
+  "taskDefinitionArn": "arn:aws:ecs:us-west-1:942004241991:task-definition/ps-task:1",
   "containerDefinitions": [
     {
-      "name": "container",
-      "image": "942004241991.dkr.ecr.us-east-1.amazonaws.com/pavan-ecr@sha256:1d8719e139ef553d5ec99478bf50b61a381f9e64f94392ff9f99166af584a774",
+      "name": "wordpress",
+      "image": "942004241991.dkr.ecr.us-west-1.amazonaws.com/first-ecr@sha256:2a24f8c25e2fb6d590813671afcc2612ed1c712b7ba263a870bdc6e3354833da",
       "cpu": 0,
       "portMappings": [
         {
           "containerPort": 80,
           "hostPort": 80,
           "protocol": "tcp",
-          "name": "container-80-tcp",
+          "name": "wordpress-80-tcp",
           "appProtocol": "http"
         }
       ],
       "essential": true,
       "environment": [],
+      "environmentFiles": [],
       "mountPoints": [],
       "volumesFrom": [],
+      "ulimits": [],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/image-pavan",
+          "awslogs-group": "/ecs/ps-task",
           "awslogs-create-group": "true",
-          "awslogs-region": "us-east-1",
+          "awslogs-region": "us-west-1",
           "awslogs-stream-prefix": "ecs"
-        }
+        },
+        "secretOptions": []
       },
       "systemControls": []
     }
   ],
-  "family": "image-pavan",
+  "family": "ps-task",
   "taskRoleArn": "arn:aws:iam::942004241991:role/ECS-role-aa699a6f",
   "executionRoleArn": "arn:aws:iam::942004241991:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
-  "revision": 19,
+  "revision": 1,
   "volumes": [],
   "status": "ACTIVE",
   "requiresAttributes": [
@@ -72,8 +75,8 @@
   "placementConstraints": [],
   "compatibilities": [
     "EC2",
-    "MANAGED_INSTANCES",
-    "FARGATE"
+    "FARGATE",
+    "MANAGED_INSTANCES"
   ],
   "runtimePlatform": {
     "cpuArchitecture": "X86_64",
@@ -84,7 +87,7 @@
   ],
   "cpu": "1024",
   "memory": "3072",
-  "registeredAt": "2026-07-02T05:39:35.802Z",
+  "registeredAt": "2026-07-09T05:53:45.801Z",
   "registeredBy": "arn:aws:iam::942004241991:root",
   "enableFaultInjection": false,
   "tags": []
