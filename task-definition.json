@@ -1,9 +1,9 @@
 {
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:942004241991:task-definition/serverless-deploy:1",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:942004241991:task-definition/task-1:1",
   "containerDefinitions": [
     {
       "name": "Main",
-      "image": "942004241991.dkr.ecr.us-east-1.amazonaws.com/pavan-1-repo@sha256:2c8f07ed879469da966717ddb24c5c862275068aec22f6a84aac1e19bc18319c",
+      "image": "942004241991.dkr.ecr.us-east-1.amazonaws.com/pavan-repo-1@sha256:a202ebbaa867128c21cce577acf0cd55929243ec08e466b397cccc7e625fcf34",
       "cpu": 0,
       "portMappings": [
         {
@@ -23,7 +23,7 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/serverless-deploy",
+          "awslogs-group": "/ecs/task-1",
           "awslogs-create-group": "true",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
@@ -33,7 +33,7 @@
       "systemControls": []
     }
   ],
-  "family": "serverless-deploy",
+  "family": "task-1",
   "executionRoleArn": "arn:aws:iam::942004241991:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
   "revision": 1,
@@ -83,7 +83,7 @@
   ],
   "cpu": "1024",
   "memory": "3072",
-  "registeredAt": "2026-09-23T15:29:04.657Z",
+  "registeredAt": "2026-09-25T04:56:52.264Z",
   "registeredBy": "arn:aws:iam::942004241991:root",
   "enableFaultInjection": false,
   "tags": []
