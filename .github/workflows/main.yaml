@@ -60,7 +60,7 @@ jobs:
           cat task-definition.json > new-task.json
 
             - name: Deploy to Amazon ECS
-        uses: aws-actions/amazon-ecs-deploy-task-defination@v2
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: new-task.json
           service: ${{ secrets.ECS_SERVICE }}
